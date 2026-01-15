@@ -34,14 +34,15 @@ function gsdgm(varargin)
     handles.showInputRas = 0;
     handles.showSig = 0;
     handles.showRas = 0;
+    handles.verbose = 0;
     
     handles.var = 0;
     handles.pcvar = 0;
     handles.vardnn = 0;
 
-    handles.lag = 3;
+    handles.lag = 1;
     handles.noiseType = 'gaussian';
-    handles.surrNum = 1;
+    handles.surrNum = 0;
     handles.sigLen = 0;
     handles.pcRate = 0.99;
     handles.maxEpochs = 1000;
@@ -100,6 +101,8 @@ function gsdgm(varargin)
                 handles.showSig = 1;
             case {'--showras'}
                 handles.showRas = 1;
+            case {'--verbose'}
+                handles.verbose = 1;
             case {'-h','--help'}
                 showUsage();
                 return;
@@ -142,13 +145,13 @@ function showUsage()
     disp('  -v, --var           output Vector Auto-Regression (VAR) group surrogate model (<filename>_gsm_var.mat)');
     disp('  -p, --pcvar         output Principal Component VAR (PCVAR) group surrogate model (<filename>_gsm_pcvar.mat)');
     disp('  -d, --vardnn        output VAR Deep Neural Network (VARDNN) group surrogate model (<filename>_gsm_vardnn.mat)');
-    disp('  --lag num           time lag <num> for VAR, PCVAR, VARDNN surrogate model (default:3)');
+    disp('  --lag num           time lag <num> for VAR, PCVAR, VARDNN surrogate model (default:1)');
     disp('  --noise type        noise type for VAR, PCVAR, VARDNN surrogate model (default:"gaussian" or "residuals")');
     disp('  --outpath path      output files <path> (default:"results")');
     disp('  --transform type    input training signal transform <type> 0:raw, 1:sigmoid (default:0)');
     disp('  --transopt num      signal transform option <num> (for type 1:centroid value)');
     disp('  --format type       output surrogate data file format <type> 0:csv, 1:mat (default:1)');
-    disp('  --surrnum num       output surrogate sample number <num> (default:1)');
+    disp('  --surrnum num       output surrogate sample number <num> (default:0)');
     disp('  --siglen num        output time-series length <num> (default:same as input time-series)');
     disp('  --range type        output surrogate value range (default:"auto", sigma:<num>, full:<num>, <min>:<max> or "none")');
     disp('  --pcrate num        principal component variance rate <num> for PCVAR surrogate (default:0.99)');
@@ -157,6 +160,7 @@ function showUsage()
     disp('  --showinras         show raster plot of input time-series data of <filename>.csv');
     disp('  --showsig           show output surrogate time-series data');
     disp('  --showras           show raster plot of output surrogate time-series data');
+    disp('  --verbose           show verbose');
     disp('  --version           show version number');
     disp('  -h, --help          show command line help');
 end
@@ -290,11 +294,13 @@ function processInputFiles(handles)
         gRange = getGroupRange(CX);
 
         if handles.var > 0
-            net = initMvarNetworkWithCell(CX, [], [], [], handles.lag);
+%            net = initMvarNetworkWithCell(CX, [], [], [], handles.lag);
+            net = initFullVarNetworkWithCell(CX, [], handles.lag, 0, 0, false, handles.verbose);
             saveModelFile(handles, net, gRange, [savename '_gsm_var']);
         end
         if handles.pcvar > 0
-            net = initMpcvarNetworkWithCell(CX, [], [], [], handles.lag, handles.pcRate);    
+%            net = initMpcvarNetworkWithCell(CX, [], [], [], handles.lag, handles.pcRate);    
+            net = initFullPcvarNetworkWithCell(CX, [], handles.lag, handles.pcRate, 0, 0, false, handles.verbose, 0); % returns Mvar compatible net
             saveModelFile(handles, net, gRange, [savename '_gsm_pcvar']);
         end
         if handles.vardnn > 0
@@ -317,7 +323,7 @@ function processInputFiles(handles)
     end
     
     % surrogate data mode
-    if ~isempty(net)
+    if ~isempty(net) && handles.surrNum > 0
         if handles.sigLen > 0, sigLen = handles.sigLen; else sigLen = net.sigLen; end
 
         % dummy signal for nodeNum, sigLen and surrogate initial value (also affect surrogate value range)
