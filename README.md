@@ -19,7 +19,7 @@ All voxels are fully connected, and vector auto-regression (VAR) surrogate model
 
 Then, we extended output of VAR surrogate model for virtual neuromodulation.
 <div align="center">
-<img src="data/img/fig2.jpg" width="25%">
+<img src="data/img/fig2.jpg" width="30%">
 </div>
 
 
