@@ -5,7 +5,7 @@ The Virtual Neuromodulation Toolbox for MATLAB.
 
 ## Introduction
 To realize the digital brain, various approaches have been taken at multiple levels.
-We proposed [Group Surrogate Data Generating Model (GSDGM)](https://github.com/takuto-okuno-riken/mtess), which does not incorporate structural connectivity and focuses on reproducing human resting-state functional MRI dynamics. 
+We proposed [Group Surrogate Data Generating Model (GSDGM)](https://github.com/takuto-okuno-riken/mtess), which does not incorporate structural connectivity and focuses on reproducing resting-state functional MRI dynamics (BOLD signal). 
 This model can learn multivariate time-series data (BOLD signal) of a group and generate a centroidal and representative multivariate time-series of the group.
 The group surrogate model preserves the statistics of multivariate time-series well, so this allows for the generation of whole-brain dynamics with extremely high accuracy. 
 
