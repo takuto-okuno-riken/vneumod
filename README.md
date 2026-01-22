@@ -123,6 +123,8 @@ The input .mat files are optional. It should include subject permutation data fo
 |:---|:---|:---|
 |perm |&lt;1&gt; x &lt;length&gt; | time-series permutation order|
 
+The output will be T-value 3D matrix nifti file (GLM result) aligned with cube atlas nifti file.
+
 ##
 <b>mtess command</b><br>
 ~~~
