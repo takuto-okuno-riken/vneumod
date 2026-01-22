@@ -112,7 +112,7 @@ usage: vneumod [options] [permfile.mat ...]
   --vnparam num num num  set virtual neuromodulation params <num num num> (default:28 22 0.15)
   --tr num               set TR (second) of fMRI time-series <num> (default:1)
   --hrfparam num num     set HRF (for convolution) params <num num> (default:16 8)
-  --glm num           output GLM result nifti file. <num> is atlas reampling size
+  --glm               output GLM result nifti file.
   --outpath path      output files <path> (default:"results")
   --nocache           do not output surrogate file
   --version           show version number
