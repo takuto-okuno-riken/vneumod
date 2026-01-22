@@ -98,8 +98,7 @@ function vneumod(varargin)
                 handles.outpath = varargin{i+1};
                 i = i + 1;
             case {'--glm'}
-                handles.glm = str2num(varargin{i+1});
-                i = i + 1;
+                handles.glm = 1;
             case {'--nocache'}
                 handles.nocache = 1;
             case {'-h','--help'}
@@ -133,7 +132,11 @@ function vneumod(varargin)
         showUsage();
         return;
     elseif isempty(handles.roisidx) && isempty(handles.targatl) 
-        disp('no modulation target index or atlas file. please specify .mat or nifti file.');
+        disp('no modulation target index or target atlas file. please specify .mat or nifti file.');
+        showUsage();
+        return;
+    elseif ~isempty(handles.targatl) && isempty(handles.atlas)
+        disp('when target atlas is specified, an atlas file must be specified.');
         showUsage();
         return;
     elseif handles.glm>0 && isempty(handles.atlas)
@@ -165,7 +168,7 @@ function showUsage()
     disp('  --vnparam num num num  set virtual neuromodulation params <num num num> (default:28 22 0.15)');
     disp('  --tr num               set TR (second) of fMRI time-series <num> (default:1)');
     disp('  --hrfparam num num     set HRF (for convolution) params <num num> (default:16 8)');
-    disp('  --glm num           output GLM result nifti file. <num> is atlas reampling size');
+    disp('  --glm               output GLM result nifti file.');
     disp('  --outpath path      output files <path> (default:"results")');
     disp('  --nocache           do not output surrogate file');
     disp('  --version           show version number');
@@ -211,7 +214,6 @@ function processInputFiles(handles)
         atargatlinfo = niftiinfo(handles.targatl);
         targV = niftiread(atargatlinfo);
         targV = adjustVolumeDir(targV, atargatlinfo);
-
         if isempty(handles.rois)
            rois = unique(targV);
            rois(isnan(rois)) = [];
@@ -311,18 +313,13 @@ function processInputFiles(handles)
                     disp(['save virtual neuromodulation surrogate file : ' outfname]);
                 end
             end
-    
+
             % calcurate 2nd level GLM and save nifti file
             if handles.glm > 0
                 % load atlas file
                 atlasinfo = niftiinfo(handles.atlas);
                 atlasV = niftiread(atlasinfo);
                 atlasV = adjustVolumeDir(atlasV, atlasinfo); % this does not affect
-                if handles.glm > 1
-                    estiV = resamplingNifti3DVolume(atlasV, handles.glm, handles.glm, 'max');
-                else
-                    estiV = atlasV;
-                end
         
                 tuM = 8;  % GLM tukey-taper size
                 betaBmat = [handles.outpath '/' sessionName '_2nd-Tukey' num2str(tuM) '.mat'];
@@ -340,12 +337,11 @@ function processInputFiles(handles)
                         % calc 1st level GLM
                         Xorg = Chrf{k};
                         Xt = [Xorg, ones(size(Xorg,1),1)];
-                        [f.B2, RSS, df, X2is, tRs, R] = calcGlmTukey(S{k}', Xt, tuM);
-            
-                        [recel, f.FWHM] = estimateSmoothFWHM(R, RSS, df, estiV);
+                        [f.B2, RSS, df] = calcGlmTukey(S{k}', Xt, tuM);
+%                        [recel, f.FWHM] = estimateSmoothFWHM(R, RSS, df, estiV);
                         bmatC{k} = f;
                     end
-        
+
                     % calc 2nd-level estimation
                     disp(['calc 2nd-level GLM...']);
                     B1 = [];
@@ -356,23 +352,22 @@ function processInputFiles(handles)
                         % 2nd-level Y vector
                         B2 = f.B2(:,[1,2]); % include design and intercept (we need more than 8 length for tukey taper)
                         B1 = [B1; B2'];
-                        FWHMs = [FWHMs; f.FWHM];
-                
+%                        FWHMs = [FWHMs; f.FWHM];
+
                         % 2nd-level design matrix
                         X2 = [X2; eye(size(B2,2))];
                     end
                     clear f;
                     B1(isnan(B1)) = 0; % there might be nan
-                    FWHMs = mean(FWHMs,1); % let's take the mean of FWHM.
-    
+%                    FWHMs = mean(FWHMs,1); % let's take the mean of FWHM.
+
                     % calc 2nd-level estimation
-                    [B, RSS, df, X2is, tRs, R] = calcGlmTukey(B1, X2, tuM);
-    
-                    [recel, FWHM] = estimateSmoothFWHM(R, RSS, df, estiV);
+                    [B, RSS, df, X2is, tRs] = calcGlmTukey(B1, X2, tuM);
+%                    [recel, FWHM] = estimateSmoothFWHM(R, RSS, df, estiV);
     
                     % output beta matrix
                     if handles.nocache == 0
-                        save(betaBmat,'B','RSS','X2is','tRs','recel','FWHM','df','-v7.3');
+                        save(betaBmat,'B','RSS','X2is','tRs','df','-v7.3');
                         disp(['save 2nd level GLM result file : ' betaBmat]);
                     end
                 end

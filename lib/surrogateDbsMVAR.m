@@ -5,8 +5,6 @@
 % input:
 %  X            multivariate time series matrix (node x time series)
 %  exSignal     multivariate time series matrix (exogenous input x time series) (optional)
-%  nodeControl  node control matrix (node x node) (optional)
-%  exControl    exogenous input control matrix for each node (node x exogenous input) (optional)
 %  net          mVAR network
 %  A            DBS stimulus multivariate time series matrix (add) (node x time series)
 %  M            DBS stimulus multivariate time series matrix (multi) (node x time series)
@@ -18,7 +16,7 @@
 %  Errin        Err matrix of VAR (default:[])
 %  usegpu       use gpu for regress function (default:false)
 
-function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, nodeControl, exControl, net, A, M, dist, surrNum, yRange, nBaset, Cin, Errin, usegpu)
+function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, net, A, M, dist, surrNum, yRange, nBaset, Cin, Errin, usegpu)
     if nargin < 12, usegpu = false; end
     if nargin < 11, Errin = []; end
     if nargin < 10, Cin = []; end
@@ -36,9 +34,6 @@ function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, nodeControl, exContro
     % set node input
     Xorg = [X; exSignal];
 
-    % set control 3D matrix (node x node x lags)
-    [~,~,control] = getControl3DMatrix(nodeControl, exControl, nodeNum, exNum, lags);
-
     % calc Y range
     if isnan(yRange)
         t = max(X(:)); d = min(X(:));
@@ -49,7 +44,7 @@ function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, nodeControl, exContro
     rvlen = length(net.rvec{1});
     if isempty(Errin)
         for i=2:nodeNum, if rvlen > length(net.rvec{i}), rvlen = length(net.rvec{i}); end; end
-        Err = single(nan(nodeNum,rvlen));
+        Err = nan(nodeNum,rvlen,'single');
         for i=1:nodeNum
             Err(i,:) = net.rvec{i}(1:rvlen);
         end
@@ -58,10 +53,9 @@ function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, nodeControl, exContro
     end
     % get coefficient matrix
     if isempty(Cin)
-        C = single(zeros(nodeNum,inputNum*lags+1));
+        C = zeros(nodeNum,inputNum*lags+1,'single');
         for i=1:nodeNum
-            idx = find(control(i,:,:)==1);
-            C(i,[idx(:).' end]) = net.bvec{i};
+            C(i,:) = net.bvec{i};
         end
     else
         C = Cin;
@@ -74,7 +68,7 @@ function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, nodeControl, exContro
     end
     noise = Err;
 
-    S2 = ones(inputNum*lags+1,1);
+    S2 = ones(inputNum*lags+1,1,'single');
     % use gpu array
     if usegpu
         % check max grid size

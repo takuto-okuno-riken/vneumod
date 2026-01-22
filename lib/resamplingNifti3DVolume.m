@@ -13,7 +13,7 @@ function outV = resamplingNifti3DVolume(V, stepXY, stepZ, operation)
     xs = floor(size(V,1)/stepXY);
     ys = floor(size(V,2)/stepXY);
     zs = floor(size(V,3)/stepZ);
-    outV = single(zeros(xs,ys,zs));
+    outV = zeros(xs,ys,zs,'single');
     if stepXY >= 1 && stepZ >= 1
         % scale down
         for z=1:zs

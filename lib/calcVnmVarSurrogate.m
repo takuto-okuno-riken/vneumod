@@ -31,7 +31,7 @@ function S = calcVnmVarSurrogate(net, CX, CA, CM, perm, surrNum, srframes)
             % ordered residual with subject permutation
             nBaset = {perm(frames*(i-1)+1:frames*i), 0};
 
-            [S{i}, C, Err] = surrogateDbsMVAR(X(:,1:srframes), [], [], [], net, CA{i}, CM{i}, dist, 1, NaN, nBaset, C, Err, usegpu);
+            [S{i}, C, Err] = surrogateDbsMVAR(X(:,1:srframes), [], net, CA{i}, CM{i}, dist, 1, NaN, nBaset, C, Err, usegpu);
             disp(['done t=' num2str(toc(tc)) 'sec']);
         end
     end

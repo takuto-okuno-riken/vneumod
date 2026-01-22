@@ -30,6 +30,7 @@ function [B, RSS, df, X2is, tRs, R] = calcGlmTukey(Y, X, tuM)
     B = nan(roiNum,xsz,'single');
     RSS = nan(roiNum,1,'single');
     CR = cell(roiNum,1);
+    isOutX2is = (nargout > 3);
     isOutR = (nargout > 5);
     df = size(X,1) - size(X,2);
 
@@ -89,6 +90,7 @@ function [B, RSS, df, X2is, tRs, R] = calcGlmTukey(Y, X, tuM)
 %}
         B(i,:) = b;
         RSS(i) = r' * r;
+        if ~isOutX2is, continue; end
         if isOutR, CR{i} = r; end
 %{
         C = xcov(r',tuM,'unbiased');

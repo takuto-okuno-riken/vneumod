@@ -277,7 +277,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
                     end
                     if ~isempty(Err), dist ='residuals'; end % use Err as is
 
-                    [S{i}, C, Err, gperm] = surrogateDbsMVAR(X(:,1:srframes), [], [], [], net, CA{i}, CM{i}, dist, 1, NaN, nBaset, C, Err, usegpu);
+                    [S{i}, C, Err, gperm] = surrogateDbsMVAR(X(:,1:srframes), [], net, CA{i}, CM{i}, dist, 1, NaN, nBaset, C, Err, usegpu);
                     disp(['done t=' num2str(toc(tc)) 'sec']);
 
                     if isempty(nBaset), perm = gperm; end
