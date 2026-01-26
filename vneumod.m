@@ -28,6 +28,7 @@ function vneumod(varargin)
     handles.outpath = 'results';
     handles.cx = [];
     handles.model = [];
+    handles.pymodel = [];
     handles.roisidx = [];
     handles.atlas = [];
     handles.targatl = []; % target atlas
@@ -54,6 +55,9 @@ function vneumod(varargin)
                 i = i + 1;
             case {'-m','--model'}
                 handles.model = varargin{i+1};
+                i = i + 1;
+            case {'--pymodel'}
+                handles.pymodel = varargin{i+1};
                 i = i + 1;
             case {'-i','--roiidx'}
                 handles.roisidx = varargin{i+1};
@@ -127,7 +131,7 @@ function vneumod(varargin)
         disp('no cells of subject time-series (CX) file. please specify .mat file.');
         showUsage();
         return;
-    elseif isempty(handles.model)
+    elseif isempty(handles.model) && isempty(handles.pymodel) 
         disp('no group surrogate model file. please specify .mat file.');
         showUsage();
         return;
@@ -171,6 +175,7 @@ function showUsage()
     disp('  --glm               output GLM result nifti file.');
     disp('  --outpath path      output files <path> (default:"results")');
     disp('  --nocache           do not output surrogate file');
+    disp('  --pymodel path      set (VAR) group surrogate model <path> by vneumodpy (Python)');
     disp('  --version           show version number');
     disp('  -h, --help          show command line help');
 end
@@ -237,8 +242,15 @@ function processInputFiles(handles)
     load(handles.cx);
 
     % load model file
-    disp(['load model file: ' handles.model])
-    load(handles.model);
+    if ~isempty(handles.model)
+        disp(['load model file: ' handles.model])
+        load(handles.model);
+    elseif ~isempty(handles.pymodel) 
+        net = loadMvarNetworkPy(handles.pymodel);
+    else
+        disp('error: empty model file.');
+        return;
+    end
 
     % init
     vnpm = handles.vnparam;
