@@ -115,6 +115,7 @@ usage: vneumod [options] [permfile.mat ...]
   --glm               output GLM result nifti file.
   --outpath path      output files <path> (default:"results")
   --nocache           do not output surrogate file
+  --pymodel path      set (VAR) group surrogate model <path> by vneumodpy (Python)
   --version           show version number
   -h, --help          show command line help
 ~~~
