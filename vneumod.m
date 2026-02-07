@@ -166,7 +166,7 @@ function showUsage()
     disp('  -t, --targatl name  set modulation target atlas nifti file (<filename>.nii.gz)');
     disp('  -i, --roiidx name   set modulation target ROIidx file (<filename>.mat)');
     disp('  -r, --roi num       set modulation target ROI <num> or <range text>');
-    disp('  -o, --out num       set output perm & surrogate files number <num> (default:1)');
+    disp('  -o, --out num       set output trials (perm & surrogate files) number <num> (default:1)');
     disp('  --surrnum num       output surrogate sessions per one file <num> (default:40)');
     disp('  --srframes num      output surrogate frames <num> (default:160)');
     disp('  --vnparam num num num  set virtual neuromodulation params <num num num> (default:28 22 0.15)');
