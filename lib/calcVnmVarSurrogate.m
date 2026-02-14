@@ -15,7 +15,7 @@ function S = calcVnmVarSurrogate(net, CX, CA, CM, perm, surrNum, srframes)
     usegpu = false;
 
     cxlen = length(CX);
-    frames = size(CX{1},2);
+    reslen = size(CX{1},2) - net.lags; % residual length
 
     % Virtual Neuromodulation VAR surrogate
     S = cell(surrNum,1);
@@ -29,7 +29,7 @@ function S = calcVnmVarSurrogate(net, CX, CA, CM, perm, surrNum, srframes)
         if i > length(S) || isempty(S{i})
             tc = tic;
             % ordered residual with subject permutation
-            nBaset = {perm(frames*(i-1)+1:frames*i), 0};
+            nBaset = {perm(reslen*(i-1)+1:reslen*i), 0};
 
             [S{i}, C, Err] = surrogateDbsMVAR(X(:,1:srframes), [], net, CA{i}, CM{i}, dist, 1, NaN, nBaset, C, Err, usegpu);
             disp(['done t=' num2str(toc(tc)) 'sec']);

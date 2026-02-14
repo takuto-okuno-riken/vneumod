@@ -264,7 +264,7 @@ function processInputFiles(handles)
     
     % process each file
     for i = 1:N
-        perm = [];
+        perm = []; clear reslen;
         if isMatf
             % load permutation mat file
             fname = handles.matFiles{i};
@@ -289,11 +289,24 @@ function processInputFiles(handles)
         if exist(permfname,'file')
             disp(['load perm file : ' permfname]);
             load(permfname); % load prev result
+%{
+            if ~exist('reslen','var')
+                frames = size(CX{1},2);
+                reslen = size(CX{1},2) - net.lags; % residual length
+                rp = 1:frames:length(perm);
+                rp = ceil(perm(rp)/frames);
+                perm = [];
+                for k=1:length(CX)
+                    perm = [perm, (1:reslen) + (rp(k)-1)*reslen];
+                end
+                save(permfname, 'perm', 'uxtime', 'reslen', '-v7.3');
+            end
+%}
         end
         if isempty(perm)
             % generating subject permutation
-            [perm, uxtime] = getVnmSubjectPermutation(CX);
-            save(permfname, 'perm', 'uxtime', '-v7.3');
+            [perm, uxtime, reslen] = getVnmSubjectPermutation(CX);
+            save(permfname, 'perm', 'uxtime', 'reslen', '-v7.3');
             disp(['save perm file : ' permfname]);
         end
 
