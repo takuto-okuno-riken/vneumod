@@ -13,7 +13,8 @@
 %  res             HRF sampling resolution (optional)
 %  sp              HRF sampling starting point (optional)
 
-function [CA, Chrf, CM] = getVnmAddMulSignals(CX, dbsidx, surrNum, srframes, dbsoffsec, dbsonsec, dbspw, TR, res, sp)
+function [CA, Chrf, CM] = getVnmAddMulSignals(CX, dbsidx, surrNum, srframes, dbsoffsec, dbsonsec, dbspw, TR, res, sp, hrfgam)
+    if nargin < 11, hrfgam = []; end  % HRF parameters
     if nargin < 10, sp = 8; end  % HRF sampling starting point
     if nargin < 9, res = 16; end  % HRF sampling resolution
     if nargin < 8, TR = 1.0; end
@@ -25,7 +26,12 @@ function [CA, Chrf, CM] = getVnmAddMulSignals(CX, dbsidx, surrNum, srframes, dbs
 
     % get HRF
     dt = TR / res;
-    [t, hrf] = getGlmHRF(dt); % human's HRF;
+    if ~isempty(hrfgam)
+        hg = hrfgam;
+        [t, hrf] = getGlmHRF(dt, hg(1), hg(2), hg(3), hg(4), hg(5)); % other species HRF;
+    else
+        [t, hrf] = getGlmHRF(dt); % human's HRF;
+    end
 
     % find time series range
     cxlen = length(CX);

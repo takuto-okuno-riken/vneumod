@@ -42,6 +42,7 @@ function vneumod(varargin)
     handles.vnparam = [28,22,0.15];
     handles.tr = 1;
     handles.hrfparam = [16,8];
+    handles.hrfgam = [];
 
     % load command line input
     i = 1;
@@ -98,6 +99,13 @@ function vneumod(varargin)
                 handles.hrfparam(1) = str2num(varargin{i+1});
                 handles.hrfparam(2) = str2num(varargin{i+2});
                 i = i + 2;
+            case {'--hrfgam'}
+                handles.hrfgam(1) = str2num(varargin{i+1});
+                handles.hrfgam(2) = str2num(varargin{i+2});
+                handles.hrfgam(3) = str2num(varargin{i+3});
+                handles.hrfgam(4) = str2num(varargin{i+4});
+                handles.hrfgam(5) = str2num(varargin{i+5});
+                i = i + 5;
             case {'--outpath'}
                 handles.outpath = varargin{i+1};
                 i = i + 1;
@@ -169,9 +177,10 @@ function showUsage()
     disp('  -o, --out num       set output trials (perm & surrogate files) number <num> (default:1)');
     disp('  --surrnum num       output surrogate sessions per one file <num> (default:40)');
     disp('  --srframes num      output surrogate frames <num> (default:160)');
-    disp('  --vnparam num num num  set virtual neuromodulation params <num num num> (default:28 22 0.15)');
-    disp('  --tr num               set TR (second) of fMRI time-series <num> (default:1)');
-    disp('  --hrfparam num num     set HRF (for convolution) params <num num> (default:16 8)');
+    disp('  --vnparam num ...   set virtual neuromodulation params <num num num> (default:28 22 0.15)');
+    disp('  --tr num            set TR (second) of fMRI time-series <num> (default:1)');
+    disp('  --hrfparam num ...  set HRF (for convolution) params <num num> (default:16 8)');
+    disp('  --hrfgam num ...    set HRF (for convolution) gamma function params <num num num num num> (default:[])');
     disp('  --glm               output GLM result nifti file.');
     disp('  --outpath path      output files <path> (default:"results")');
     disp('  --nocache           do not output surrogate file');
@@ -305,7 +314,7 @@ function processInputFiles(handles)
         end
         if isempty(perm)
             % generating subject permutation
-            [perm, uxtime, reslen] = getVnmSubjectPermutation(CX);
+            [perm, uxtime, reslen] = getVnmSubjectPermutation(CX, net.lags);
             save(permfname, 'perm', 'uxtime', 'reslen', '-v7.3');
             disp(['save perm file : ' permfname]);
         end
@@ -318,7 +327,7 @@ function processInputFiles(handles)
             % get modulation (add & mul) time-series for vertual neuromodulation
             disp(['generate modulation (add & mul) time-series, target roi=' num2str(roi) ', srframes=' num2str(handles.srframes) ', dbsoffsec=' num2str(vnpm(1)) ', dbsonsec=' num2str(vnpm(2)) ', dbspw=' num2str(vnpm(3))]);
             disp(['convolution params tr=' num2str(handles.tr) ', res=' num2str(hrfpm(1)) ', sp=' num2str(hrfpm(2))]);
-            [CA, Chrf, CM] = getVnmAddMulSignals(CX, dbsidxs{j}, handles.surrNum, handles.srframes, vnpm(1), vnpm(2), vnpm(3), handles.tr, hrfpm(1), hrfpm(2));
+            [CA, Chrf, CM] = getVnmAddMulSignals(CX, dbsidxs{j}, handles.surrNum, handles.srframes, vnpm(1), vnpm(2), vnpm(3), handles.tr, hrfpm(1), hrfpm(2), handles.hrfgam);
 
             % load or calc virtual neuromodulation surrogate
             sessionName = [savename '_' num2str(roi) 'sr' num2str(handles.surrNum) 'pr' num2str(i)];
