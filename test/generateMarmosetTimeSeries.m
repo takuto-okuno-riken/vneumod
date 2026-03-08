@@ -6,7 +6,8 @@ function generateMarmosetTimeSeries
     smooth = 34;
     filter = ''; %'hf';%
     nuisance = 'gmacomp'; % 'aro'; %
-    dtype = '';
+    dtype = 'pd36'; % for pd marmoset
+%    dtype = 'cn25'; % for control marmoset (not enough data size)
 
     % atlas of cube clusters
     % need to run makeCubeAtlas.m first
@@ -18,9 +19,6 @@ function generateMarmosetTimeSeries
 end
 
 function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,dtype)
-    path = ['results/dbs' dtype num2str(atlasSize) '/'];
-    cmap = turbo;
-%    cmap = hot;
     rmFrame = 5;  % number of removing frames
     TR = 1.0;
 
@@ -30,7 +28,11 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
     filterSize = 2*ceil(2*sigma)+1;
     hpfTh = 1 / 128; % highpass filter threthold (Hz)
 
-    rsfmribase = {['G:\marmoset\pd_org']};
+    if strcmp(dtype,'pd36')
+        rsfmribase = {'G:\marmoset\pd_org'};
+    elseif strcmp(dtype,'cn25')
+        rsfmribase = {'G:\marmoset\pdctrl_org2', 'G:\marmoset\pdctrl_org3', 'G:\marmoset\pdctrl_org4'};
+    end
     maxfiles = inf;
 
     % load cube atlas 
@@ -59,7 +61,7 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
 
     % calc beta values (regression)
     cubename = ['BMA2marmo' num2str(atlasSize)];
-    sessionName = ['x' cubename];
+    sessionName = [dtype cubename];
     outcnt = 0;
 
     outpath = ['results/ts' num2str(atlasSize)];
@@ -74,7 +76,11 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
             rsfmri = listing(i).name;
             names = split(rsfmri,'.');
             ids = split(names{1},'_');
-            id = ids{1};
+            if strcmp(dtype,'pd36')
+                id = ids{1};
+            elseif strcmp(dtype,'cn25')
+                id = [rsfmribase{j}(end) ids{1}];
+            end
 
             % check output file first
             xmatf = [outpath '/' sessionName 's' num2str(smooth) filter nuisance '_' id '.mat'];
@@ -127,8 +133,7 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
 
             xstd = std(X(:),1);
             if xstd > 10
-                disp(['std is too big =' num2str(xstd) ', ' id '_' date]);
-                continue;
+                disp(['std is too big =' num2str(xstd) ', ' id]);
             end
 
             % high pass filter as preprocessing step (M.W.Woolrich, 2001) type.

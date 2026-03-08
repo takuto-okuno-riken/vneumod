@@ -7,7 +7,8 @@ function generateMarmosetCXfile
     nuisance = 'gmacomp'; % 'aro'; % 
     atlasSizes = [3, 2];
     lags = [1,2,3,4,5];
-    dtype = ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
+%    dtype = 'pd36'; % for pd marmoset
+    dtype = 'cn25'; % for control marmoset
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % whole brain 'Ecp'; % except cerebellum & pons 
 
@@ -33,21 +34,21 @@ function generateCXfileAlgos(algo, atlasSize, lag, smooth, nuisance, dtype, sbjm
         lagStr = ['L' num2str(lag)];
     end
 
-    cxname = ['results/pd36' cubename smooth nuisance dtype sbjmax '.mat'];
+    cxname = ['results/' dtype cubename smooth nuisance sbjmax '.mat'];
     if ~exist(cxname,'file')
         CX = {};
-        listing = dir(['results/ts' dtype num2str(atlasSize) '/x' 'BMA2' mtype 'marmo' num2str(atlasSize) smooth nuisance '*.mat']);
+        listing = dir(['results/ts' num2str(atlasSize) '/' dtype cubename smooth nuisance '*.mat']);
         perm = randperm(length(listing));
         for i=1:length(listing)
             if ~isempty(sbjmax) && str2double(sbjmax) < i, continue; end
             j = perm(i);
-            matf = ['results/ts' dtype num2str(atlasSize) '/' listing(j).name];
+            matf = ['results/ts' num2str(atlasSize) '/' listing(j).name];
             load(matf);
             if ~isempty(mIdx)
                 X = X(:,mIdx);
             end
             xs = std(X(:),1);
-            if ~strcmp(dtype, 'hcp1s') && xs > 10, disp('bad std X'); end
+            disp([matf ' std X=' num2str(xs)]);
 %            X = X / xs; % normalize in each subject (not necessary)
 
             % show histogram 
