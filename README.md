@@ -9,15 +9,15 @@ We proposed [Group Surrogate Data Generating Model (GSDGM)](https://github.com/t
 This model can learn multivariate time-series data (BOLD signal) of a group and generate a centroidal and representative multivariate time-series of the group.
 The group surrogate model preserves the statistics of multivariate time-series well, so this allows for the generation of whole-brain dynamics with extremely high accuracy. 
 
-Whole-brain (BOLD signal) data-driven model assumes no specific brain tissue structure, one voxel of 4 × 4 × 4 mm gray matter, and 25445 voxels based on the Allen human brain atlas. 
-All voxels are fully connected, and vector auto-regression (VAR) surrogate model is used to learn group data and generate group surrogate data.
+Whole-brain data-driven model (group surrogate model) assumes no specific brain tissue structure, one voxel of 4 × 4 × 4 mm gray matter, and 25445 voxels based on the Allen human brain atlas. 
+All voxels are fully connected, and vector auto-regression (VAR) surrogate is used to learn group data and generate group surrogate data.
 
 <div align="center">
 <img src="data/img/fig1.jpg" width="70%">
 </div>
 <br>
 
-Then, we extended output of VAR surrogate model for virtual neuromodulation.
+Then, we extended output of VAR surrogate for virtual neuromodulation.
 <div align="center">
 <img src="data/img/fig2.jpg" width="30%">
 </div>
@@ -36,7 +36,7 @@ Using the above-mentioned virtual neuromodulation, BOLD signal addition, i.e., D
 | name | description |
 |:---|:---|
 | gsdgm | Generate a whole-brain data-driven model based on the group surrogate model (VAR surrogate).|
-| vneumod | Generate virtual neuromodulation time-series surrogate data based on the whole-brain data-driven model.|
+| vneumod | Generate virtual neuromodulation time-series surrogate data based on the group surrogate model.|
 | mtess | Calculate and plot MTESS for a group of multivariate time-series data. |
 
 ## Requirements: Software
@@ -175,7 +175,7 @@ Similarities are generated for the following 8 statistical properties: mean, sta
 ## Citing Virtual Neuromodulation Toolbox
 If you find Virtual Neuromodulation Toolbox useful in your research, please cite it as follows: 
 
-Takuto Okuno, Alexander Woodward, Yuji Takahashi, Hideyuki Okano, Junichi Hata (20XX)
+Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (20XX)
 ["A digital brain study: Is deep brain stimulation activating associative circuit?"](https://www.google.com/), ,
 
 
