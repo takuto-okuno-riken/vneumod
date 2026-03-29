@@ -94,8 +94,8 @@ When you view the outputted NIfTI file with ITK-SNAP, you can confirm activation
 
 ##
 <b>Demo 2</b><br>
-This demo shows creation of a group surrogate model from rs-fMRI time-series data (25445 ROIs). <br>
-(Caution: model calculation will take a time.)
+This demo shows creation of a group surrogate model from (pre-processed) rs-fMRI time-series data (25445 ROIs). <br>
+(Caution: model calculation will take like one day.)
 ~~~
 >> gsdgm -v results/ppmi81CXAllenCube2s34gmacomp.mat
 output group surrogate model file : results/ppmi81CXAllenCube2s34gmacomp_gsm_var.mat
