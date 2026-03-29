@@ -47,11 +47,61 @@ Using the above-mentioned virtual neuromodulation, BOLD signal addition, i.e., D
 * Parallel Computing Toolbox ver7.1 or later
 * [VARDNN Toolbox](https://github.com/takuto-okuno-riken/vardnn)
 
-Please download the [VARDNN Toolbox](https://github.com/takuto-okuno-riken/vardnn) and "Add Path" in the MATLAB before using Virtual Neuromodulation toolbox.
+
+## Installation
+1. Download this Toolbox and [VARDNN Toolbox](https://github.com/takuto-okuno-riken/vardnn) zip files.
+2. Extract zip files under your working directory <work_path>.
+3. Run the MATLAB software, and "Add Path" extracted directories (i.e. <work_path>/vardnn-main and <work_path>/vneumod-main).
+4. Move to <work_path>/vneumod-main directory and run the following demos.
 
 
 ## Command Line Tools Demos
 <b>Demo 1</b><br>
+First demo uses a PD group surrogate model to apply sweet spot stimulus of the virtual STN-DBS, performs GLM analysis, and then outputs an NIfTI file.
+Pre-processed subject data and group surrogate model files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.15532271), and extracted a zip file to overwrite 'results' directory in <work_path>/vneumod-main before running this code.<br/>
+(Please confirm to update results directory.)
+
+~~~
+>> vneumod -c results/ppmi81CXAllenCube2s34gmacomp.mat --model results/ppmi81CXAllenCube2s34gmacomp_gsm_var.mat -t data/allenCube2atlasStn3.nii.gz -r 4525 --glm -a data/allenCube2atlas.nii.gz --nocache -o 1
+set savename=ppmi81CXAllenCube2s34gmacomp
+load target atlas file: data/allenCube2atlasStn3.nii.gz
+load subject time-series file: results/ppmi81CXAllenCube2s34gmacomp.mat
+load model file: results/ppmi81CXAllenCube2s34gmacomp_gsm_var.mat
+load perm file : results/perm1_ppmi81CXAllenCube2s34gmacomp.mat
+generate modulation (add & mul) time-series, target roi=4525, srframes=160, dbsoffsec=28, dbsonsec=22, dbspw=0.15
+convolution params tr=1, res=16, sp=8
+calc virtual neuromodulation surrogate. roi=4525, surrNum=40
+surrogate sample : 1
+done t=50.4246sec
+surrogate sample : 1
+done t=13.4506sec
+surrogate sample : 1
+...
+
+process GLM with Tukey-Taper(8) estimation ...
+done t=1.5757sec
+calc 2nd-level GLM...
+process GLM with Tukey-Taper(8) estimation ...
+done t=0.99001sec
+save nifti file : results/ppmi81CXAllenCube2s34gmacomp_4525sr40pr1_2nd-Tukey8.nii
+~~~
+
+<div align="center">
+<img src="data/img/demo1.jpg" width="90%"></div>
+
+When you view the outputted NIfTI file with ITK-SNAP, you can confirm the deactivation of A4.<br/>
+
+
+##
+<b>Demo 2</b><br>
+This demo shows creation of a group surrogate model from rs-fMRI time-series data (25445 ROIs). <br>
+(Caution: model calculation will take a time.)
+~~~
+>> gsdgm -v results/ppmi81CXAllenCube2s34gmacomp.mat
+output group surrogate model file : results/ppmi81CXAllenCube2s34gmacomp_gsm_var.mat
+~~~
+
+The group surrogate data is the representative centroid of the group of original time-series data.
 
 
 ## Command Line Tools Reference
