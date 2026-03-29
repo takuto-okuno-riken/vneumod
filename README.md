@@ -86,10 +86,10 @@ done t=0.99001sec
 save nifti file : results/ppmi81CXAllenCube2s34gmacomp_4525sr40pr1_2nd-Tukey8.nii
 ~~~
 
-<div align="center">
-<img src="data/img/demo1.jpg" width="90%"></div>
+When you view the outputted NIfTI file with ITK-SNAP, you can confirm activation of STN sweet spot and deactivation of A4.<br/>
 
-When you view the outputted NIfTI file with ITK-SNAP, you can confirm the deactivation of A4.<br/>
+<div align="center">
+<img src="data/img/demo1.jpg" width="70%"></div>
 
 
 ##
