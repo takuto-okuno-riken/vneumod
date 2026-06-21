@@ -15,6 +15,6 @@ function [perm, uxtime, reslen] = getVnmSubjectPermutation(CX, lags)
     rng(uxtime);
     rp = randperm(cxlen);
     for i=1:cxlen
-        perm = [perm, (1:reslen) + (rp(i)-1)*reslen];
+        perm = [perm, (reslen:-1:1) + (rp(i)-1)*reslen]; % net.rvec has flipped order.
     end
 end

@@ -61,7 +61,7 @@ function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, net, A, M, dist, surr
         C = Cin;
     end
 
-    if strcmp(dist,'gaussian')
+    if isempty(Errin) && strcmp(dist,'gaussian')
         P  = mean(Err.');
         EC = cov(Err.',1);
         Err = (mvnrnd(P,EC,size(Err,2)))';
@@ -127,8 +127,19 @@ function [Y, C, Err, perm] = surrogateDbsMVAR(X, exSignal, net, A, M, dist, surr
 
             % fixed over shoot values
             if ~isempty(yRange)
-                T(T < yRange(1)) = yRange(1);
-                T(T > yRange(2)) = yRange(2);
+                if size(yRange,1) == nodeNum
+                    idx = find(T < yRange(:,1));
+                    if ~isempty(idx)
+                        T(idx) = yRange(idx,1);
+                    end
+                    idx = find(T > yRange(:,2));
+                    if ~isempty(idx)
+                        T(idx) = yRange(idx,2);
+                    end
+                else
+                    T(T < yRange(1)) = yRange(1);
+                    T(T > yRange(2)) = yRange(2);
+                end
             end
             S(:,t) = T;
         end
