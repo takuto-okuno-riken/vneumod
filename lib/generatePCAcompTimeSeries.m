@@ -1,15 +1,19 @@
 %%
-% Calculate linear multivariate Vector Auto-Regression By PCA with Cell inputs of X and Ex.
-% Only node connections have time lags, but not exogenous connections.
-% This function assumes full connect control. exSignal only takes lag=1 (different from initMvarNetwork).
-% returns mVAR network (net).
+% Generate PCA components time-series by PCA with Cell inputs of X and Ex.
+% Time lags is fixed to 1.
+% returns PCA components time-series and max component number for explainedTh.
+% coeff and pcmu are PCA coefficient and mean values.
 % input:
-%  CX              cells of multivariate time series matrix {node x time series}
-%  CexSignal       cells of multivariate time series matrix {exogenous input x time series} (default:{})
-%  explainedTh     explained threshold for PCA components (default:0.99)
+%  CX              cells of multivariate time-series matrix {node x time-series}
+%  CexSignal       cells of multivariate time-series matrix {exogenous input x time-series} (default:{})
+%  explainedTh     explained threshold for PCA components (default:1.0)
 %  verbose         show verbose log (default:false)
+%  maxSigLen       maxmum time-series length for input CX (default:[])
+%  cachename       unique cache name (default:[])
+%  cachepath       cache path (default:'results/cache')
 
-function [CX, maxComp] = generatePCAcompTimeSeries(CX, CexSignal, explainedTh, verbose, maxSigLen, cachename)
+function [CX, maxComp, coeff, pcmu] = generatePCAcompTimeSeries(CX, CexSignal, explainedTh, verbose, maxSigLen, cachename, cachepath)
+    if nargin < 7, cachepath = 'results/cache'; end
     if nargin < 6, cachename = []; end
     if nargin < 5, maxSigLen = []; end
     if nargin < 4, verbose = false; end
@@ -65,8 +69,8 @@ function [CX, maxComp] = generatePCAcompTimeSeries(CX, CexSignal, explainedTh, v
 
     % apply the Principal Component Regress function
     if verbose, disp('apply PCA'); end
-    pcacache = ['results/cache/pca-cache-' cachename '-' num2str(size(Xti,1)) 'x' num2str(size(Xti,2)) '-full.mat'];
-    if ~isempty(cachename) && exist(pcacache,'file') 
+    pcacache = [cachepath '/pca-cache-' cachename '-' num2str(size(Xti,1)) 'x' num2str(size(Xti,2)) '-full.mat'];
+    if exist(pcacache,'file') 
         load(pcacache);
     else
         Xti = double(Xti);
@@ -96,7 +100,6 @@ function [CX, maxComp] = generatePCAcompTimeSeries(CX, CexSignal, explainedTh, v
         clear Xti;
         if ~isempty(cachename)
             save(pcacache,'coeff','score','explained','pcmu','-v7.3');
-%            save(cacheName,'IncrementalMdl','-v7.3');
         end
 %{
         if ~exist(icoeffcache,'file') 
