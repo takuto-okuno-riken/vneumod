@@ -15,13 +15,13 @@ function plotMarmosetDBSrestSimPerm
 end
 
 function [gV, aV] = loadAtlasfiles()
+    info=niftiinfo('data\warped_spmT_000mirror_WarpedRsfMRI.nii.gz');
+    gV = niftiread(info);
+    gV = adjustVolumeDir(gV, info);
+
     atlasinfo = niftiinfo('data/BMA2_labels_100muRsfMRI.nii.gz');
     aV = niftiread(atlasinfo);
     aV = adjustVolumeDir(aV, atlasinfo);
-
-    gV = aV; gV(:) = 0;
-    gV(aV==31 | aV==32 | aV==10031 | aV==10032) = -4; % A4 minus.
-%    idx = find(aV==31 | aV==32 | V==35 | V==10031 | V==10032 | V==10035);
 end
 
 function checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path, dlabels)
@@ -37,10 +37,11 @@ function checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path
 
     [gV, aV] = loadAtlasfiles();
 
-%    n = single(max(atlasV(:)));
+    n = single(max(atlasV(:)));
+    BPth = 0.05;
+%    BPth = 1e-4; % 0.0001
 %    BPth = 0.05 / n; % Bonferroni correction
-%    Tth = abs(tinv(1e-4,n-1));
-    Tth = 0;
+    Tth = abs(tinv(BPth,n-1));
     gTruth = abs(gV)>Tth;
 
     surrNum = 30;
@@ -73,17 +74,40 @@ function checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path
         title(['detection roi=' num2str(dbsroi) ' Tth=' num2str(Tth)]);
     end
 
-    figure; boxplot(aucs(:,:,6)'); ylabel('AUC');
-    title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth)]); 
-    figure; boxplot(rs(:,:,6)'); ylabel('R')
-    title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth)]);
+    figure; boxplot(aucs(:,:,6)'); ylabel('AUC'); xlabel('DBS ROI'); xticklabels(dbsrois);
+    title(['(all) Tth=' num2str(Tth)]); 
+    figure; boxplot(rs(:,:,6)'); ylabel('R'); xlabel('DBS ROI'); xticklabels(dbsrois);
+    title(['(all) Tth=' num2str(Tth)]);
 
-    % sort and find top 10
-    scores = abs(aucs-0.5)*2 + abs(rs);
+    scores = (aucs-0.5)*2 + rs;
     sc6 = squeeze(scores(:,:,6));
-    [sc6des,idx] = sort(sc6,'descend');
-    figure; plot(sc6des); ylabel('score');
-    title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth)]); 
+    figure; boxplot(sc6'); hold on; plot(sc6,'Color',[0.7 0.7 0.7]); ylabel('score');
+    title(['(all) Tth=' num2str(Tth)]); xlabel('DBS ROI'); xticks(1:length(dbsrois)); xticklabels(dbsrois);
+
+    % sort and find top 10 (all, score)
+    [sc6des,sidx] = sort(sc6,2,'descend');
+    figure; hold on;
+    for i=1:10
+        idx = sidx(2,i);
+        plot(aucs(:,idx,6));
+    end
+    title(['All, Top10 scores Tth=' num2str(Tth)]); xlabel('DBS ROI'); xticks(1:length(dbsrois)); xticklabels(dbsrois);
+
+    % sort and find top 10 (BA4,6, auc)
+    au1 = squeeze(aucs(:,:,1));
+    [sc6des,aidx] = sort(au1,2,'descend');
+    figure; hold on;
+    for i=1:10
+        idx = aidx(2,i);
+        plot(aucs(:,idx,1));
+    end
+    title(['BA4,6 Top10 AUCs Tth=' num2str(Tth)]); xlabel('DBS ROI'); xticks(1:length(dbsrois)); xticklabels(dbsrois);
+    figure; hold on;
+    for i=1:10
+        idx = aidx(2,i);
+        plot(rs(:,idx,1));
+    end
+    title(['BA4,6 Top10 Rs Tth=' num2str(Tth)]); xlabel('DBS ROI'); xticks(1:length(dbsrois)); xticklabels(dbsrois);
 end
 
 function [rs, aucs] = calcPartCorrAndAUC(V, gV, aV, gTruth)
@@ -94,10 +118,10 @@ function [rs, aucs] = calcPartCorrAndAUC(V, gV, aV, gTruth)
     idx{2} = find(((aV>=26 & aV<=150) | (aV>=10026 & aV<=10150)) & gTruth); % cortex
     idx{3} = find(((aV>=151 & aV<=632) | (aV>=10151 & aV<=10632)) & gTruth); % subcortex
     idx{4} = find(((aV>=787 & aV<=831) | (aV>=10787 & aV<=10831)) & gTruth); % cerebellum
-    idx{5} = unique([idx{2} idx{4}]); % cortex & cerebellum
+    idx{5} = unique([idx{2}(:); idx{4}(:)]); % cortex & cerebellum
     idx{6} = find(aV>0 & gTruth); % cortex & subcortex & cerebellum
 
-    for j = 6
+    for j = 1:length(idx)
         X = V(idx{j});
         G = gV(idx{j});
         nanidx = find(isnan(X) | isnan(G));
