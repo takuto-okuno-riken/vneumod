@@ -11,7 +11,24 @@ function plotDBSrestSimPerm
     dlabels = {'BA4,6','cortex','subcortex','cerebellum','ctx,cereb','All'};
 
     % check surrogate permutation seed and AUC (ROI 4525). fixed power 0.15 (work)
-    checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path, dlabels);
+%    checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path, dlabels);
+
+    % parameters
+    algo = 'pcvar';
+    path = 'results/dbs06222nii/';
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's17', nuisance, atlas, path, dlabels, 24); %perm100
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's20', nuisance, atlas, path, dlabels, 24);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's24', nuisance, atlas, path, dlabels, 24);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's28', nuisance, atlas, path, dlabels, 24);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's30', nuisance, atlas, path, dlabels, 24);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's32', nuisance, atlas, path, dlabels, 24);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's34', nuisance, atlas, path, dlabels, 24);  %perm100
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's34', nuisance, atlas, path, dlabels, 40); %perm100
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's36', nuisance, atlas, path, dlabels, 24);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's38', nuisance, atlas, path, dlabels, 24);
+    
+    % check by smooth size
+    checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabels, 24);
 end
 
 function [gV, aV, bmV, bcV] = loadAtlasfiles()
@@ -100,6 +117,137 @@ function checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path
     figure; plot(sc6des); ylabel('score');
     title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth)]); 
 end
+
+
+function checkDBSpermseedPw015_0622(algo, atlasSize, smooth, nuisance, atlas, path, dlabels, surrNum)
+    dbsrois =  [4525];%[4501, 4502, 4503]; % STH anteri, post, other (sz=2)
+    tuM = 8;  % GLM tukey-taper size
+    cubename = [atlas 'Cube' num2str(atlasSize)];
+
+    % atlas of cube clusters
+    % need to run testDBS5.m first
+    atlas = ['data/' cubename 'atlas.nii' ];
+    atlasinfo = niftiinfo([atlas '.gz']);
+    atlasV = niftiread(atlasinfo);
+    atlasV = adjustVolumeDir(atlasV, atlasinfo); % this does not affect
+
+    [gV, aV, bmV, bcV] = loadAtlasfiles();
+
+    n = single(max(atlasV(:)));
+%    BPth = 0.05 / n; % Bonferroni correction
+    Tth = abs(tinv(1e-4,n-1));
+    gTruth = abs(gV)>Tth;
+
+    permNum = 100;
+
+    rs = nan(length(dbsrois),permNum,6);
+    aucs = nan(length(dbsrois),permNum,6);
+    for i = 1:length(dbsrois)
+        dbsroi = dbsrois(i);
+        permstrs = {};
+        for p = 1:permNum
+            permStr = sprintf('id%02d',p);
+            sessionName = ['testdbsSim' num2str(dbsroi) 'AddMul' '160-28-22-0.15pw' num2str(surrNum) 'sr' permStr algo cubename smooth nuisance '0622'];
+            fname = [path sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'];
+            if exist(fname,'file')
+                info = niftiinfo(fname);
+                V = niftiread(info);
+                V = adjustVolumeDir(V, info);
+            else
+                continue;
+            end
+            [rs(i,p,:), aucs(i,p,:)] = calcPartCorrAndAUC(V, gV, bmV, aV, bcV, gTruth);
+            permstrs{p} = num2str(p);
+        end
+
+        % check DBS power effect
+        figure; plot(squeeze(rs(i,:,:))); legend(dlabels); ylabel('R'); xlabel('permNum'); xticks(1:permNum); xticklabels(permstrs); % plot correlation
+        title(['correlation roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]);
+
+        figure; plot(squeeze(aucs(i,:,:))); legend(dlabels); ylabel('AUC'); xlabel('permNum'); xticks(1:permNum); xticklabels(permstrs); % plot AUC
+        title(['detection roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]);
+    end
+
+    figure; boxplot(aucs(:,:,6)'); ylabel('AUC');
+    title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]); 
+    figure; boxplot(rs(:,:,6)'); ylabel('R')
+    title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]);
+
+    % sort and find top 10
+    scores = (aucs-0.5)*2 + (rs);
+    sc6 = squeeze(scores(:,:,6));
+    [sc6des,idx] = sort(sc6,'descend', 'MissingPlacement', 'last');
+    figure; plot(sc6des); ylabel('score');
+    title(['(all) roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]);
+    % list top 5
+    for i=1:5
+        disp([num2str(i) ') Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum) ' Score=' num2str(sc6des(i)) ' (idx=' num2str(idx(i)) ')']);
+    end
+end
+
+
+function checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabels, surrNum)
+    smooths = {'s17', 's20', 's24', 's28', 's30', 's32', 's34', 's36', 's38'};
+    dbsroi =  4525; % STN sweet spot (sz=2)
+    tuM = 8;  % GLM tukey-taper size
+    cubename = [atlas 'Cube' num2str(atlasSize)];
+
+    % atlas of cube clusters
+    % need to run testDBS5.m first
+    atlas = ['data/' cubename 'atlas.nii' ];
+    atlasinfo = niftiinfo([atlas '.gz']);
+    atlasV = niftiread(atlasinfo);
+    atlasV = adjustVolumeDir(atlasV, atlasinfo); % this does not affect
+
+    [gV, aV, bmV, bcV] = loadAtlasfiles();
+
+    n = single(max(atlasV(:)));
+%    BPth = 0.05 / n; % Bonferroni correction
+    Tth = abs(tinv(1e-4,n-1));
+    gTruth = abs(gV)>Tth;
+
+    permNum = 100;
+
+    rs = nan(length(smooths),permNum,6);
+    aucs = nan(length(smooths),permNum,6);
+    for i = 1:length(smooths)
+        smooth = smooths{i};
+        permstrs = {};
+        for p = 1:permNum
+            permStr = sprintf('id%02d',p);
+            sessionName = ['testdbsSim' num2str(dbsroi) 'AddMul' '160-28-22-0.15pw' num2str(surrNum) 'sr' permStr algo cubename smooth nuisance '0622'];
+            fname = [path sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'];
+            if exist(fname,'file')
+                info = niftiinfo(fname);
+                V = niftiread(info);
+                V = adjustVolumeDir(V, info);
+            else
+                continue;
+            end
+            [rs(i,p,:), aucs(i,p,:)] = calcPartCorrAndAUC(V, gV, bmV, aV, bcV, gTruth);
+            permstrs{p} = num2str(p);
+        end
+
+        % check DBS power effect
+%        figure; plot(squeeze(rs(i,:,:))); legend(dlabels); ylabel('R'); xlabel('permNum'); xticks(1:permNum); xticklabels(permstrs); % plot correlation
+%        title(['correlation roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]);
+
+%        figure; plot(squeeze(aucs(i,:,:))); legend(dlabels); ylabel('AUC'); xlabel('permNum'); xticks(1:permNum); xticklabels(permstrs); % plot AUC
+%        title(['detection roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum)]);
+    end
+
+    scores = (aucs-0.5)*2 + (rs);
+    partStrs = {'BA4,6','cortex','subcortex','cerebellum','cortex & cerebellum','all'};
+    for i=[1 2 6]
+        figure; boxplot(aucs(:,:,1)'); ylabel('AUC'); xticks(1:length(smooths)); xticklabels(smooths);
+        title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]); 
+        figure; boxplot(rs(:,:,1)'); ylabel('R'); xticks(1:length(smooths)); xticklabels(smooths);
+        title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
+        figure; boxplot(scores(:,:,1)'); ylabel('Score'); xticks(1:length(smooths)); xticklabels(smooths);
+        title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
+    end
+end
+
 
 function [rs, aucs] = calcPartCorrAndAUC(V, gV, bmV, aV, bcV, gTruth)
     rs = nan(6,1);

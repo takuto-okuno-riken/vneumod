@@ -4,10 +4,10 @@
 
 function generateSubjectTimeSeries
     % parameters
-    smooth = 34;
+    smooth = 18; % 34 for group
     filter = ''; %'hf';%
     nuisance = 'gmacomp'; % 'aro'; %
-    dtype = ''; % for pd1s % 'hcp1s'; % 'pd'; % 'hc'; %  'prod'; % 
+    dtype = '0622'; %''; % for pd1s % 'hcp1s'; % 'pd'; % 'hc'; %  'prod'; % 
 
     % atlas of cube clusters
     % need to run makeCubeAtlas.m first
@@ -37,15 +37,21 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
     elseif strcmp(dtype,'pd') % TR=2.5
         rsfmribase = {['H:\PPMI\pd']};
         maxfiles = 200;
+        TR = 2.5;
     elseif strcmp(dtype,'hc') % TR=2.5
         rsfmribase = {['H:\PPMI\hc']};
         maxfiles = inf;
+        TR = 2.5;
     elseif strcmp(dtype,'hcp1s')
         rsfmribase = {['H:\PPMI\hcp1s']};
         maxfiles = inf;
-    else
+    elseif isempty(dtype)
         rsfmribase = {['H:\PPMI\pd1s']};
         maxfiles = inf;
+    elseif strcmp(dtype,'0622')
+        rsfmribase = {['d:\work\pdmri\topup' dtype]};
+        maxfiles = inf;
+        rmFrame = 5;  % number of removing frames
     end
 
     % load cube atlas 
@@ -101,6 +107,9 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
     outpath = ['results/dbs' num2str(atlasSize)];
     if ~exist(outpath,'dir')
         mkdir(outpath);
+    end
+    if ~exist(path,'dir')
+        mkdir(path);
     end
     % nifti output path
 %{
@@ -202,7 +211,7 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
                 if strcmp(nuisance, 'gmacomp')
                     % get Nuisance time-series (Global Mean, CSF comps, WM comps)
                     Sd = getNuisanceMeanTimeSeries(V, [], [], []);
-                    aComp = getNuisanceaCompCor(V, csfV, wmV, Sd);
+                    aComp = getNuisanceaCompCor(double(V), csfV, wmV, Sd);
                     Xn = [Sd, aComp];
                 elseif strcmp(nuisance, 'aro')
                     % get Nuisance time-series by ICA-AROMA, coeffs are calculated by analyzeICAaromaHcp.m
@@ -219,7 +228,7 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
             X = X';
 
             xstd = std(X(:),1);
-            if ~strcmp(dtype,'hcp1s') && xstd > 10
+            if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')) && xstd > 10
                 disp(['std is too big =' num2str(xstd) ', ' id '_' date]);
                 continue;
             end

@@ -3,7 +3,7 @@
 
 function testDBSrestSimAddMul
     algos = {'var','pc80','pcvar','pc999','pc9999','rdg01','rdg05','rdg800','rdg8000','las02','las05','las08','mkvar','mk50','mk80'}; % 'sigvar','sigmvar', % sigvar not work. sigmvar, soso.
-    smooth = 's34';
+    smooth = 's32';% 's34'; %'s17'; % 34 for group. 17 for individual
     nuisance = 'gmacomp'; % 'aro'; %
     atlasSizes = [3, 2];
     usegpus = [false, false];
@@ -19,14 +19,14 @@ function testDBSrestSimAddMul
 %    dbsroi = [1221:1240]; % GPi full voxel (sz=2)
 %    dbsroi = 1230; %[1230, 1236]; % GPi posterior medial
 %    dbsroi = [3511:3546]; % Vim/Vop full voxel (sz=2)
-    dbsroi = 3518; % Vim-Vo posterior 3527; % Vim
+%    dbsroi = 3518; % Vim-Vo posterior 3527; % Vim
 %    dbsroi = [21001:21008]; % PSA (Vim bottom) full voxel (sz=2)
 %    dbsroi = [1201, 1202, 1203]; % GPi post, anteri (sz=3)
 %    dbsroi = [1211, 3502, 20001]; % GPi post, VLp (VIM), PPN rostral (sz=2)
 %    dbsroi = [3503, 3504, 3402, 3403]; % VIM, VIM, Vop, Vop (sz=2)
 %    dbsroi = [1212, 3403, 20002]; % GPi asso, Vop, PPN asso (sz=2)
     side = [0, 1]; % both, left
-    dtype = ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
+    dtype = '0622'; % ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % for whole brain 'Ecp'; % except cerebellum & pons 
     kfold = 1;%  10; %if 1 no fold.
@@ -35,18 +35,19 @@ function testDBSrestSimAddMul
     % 114 -- left, right SN (substantia nigra)
     % 45 -- left, right STH (subthalamic nucleus)
 
-    for a=1 %1:3
+    for a=3 %1
         algo = algos{a};
         for sz=2 %1:1 % 2:2 %
             atlasSize = atlasSizes(sz);
             for p=1:1
                 net = []; CXall = {};
-                for pr=[15,38]%,44,47,59,60,69,74,81,97]
+                for pr=1:50 %[15,38]%,44,47,59,60,69,74,81,97]
 %                    permstr = num2str(590*pr);
-%                    permstr = sprintf('pm%02d',pr);
+%                    permstr = sprintf('pm%02d',pr); % fully shuffled
 %                    permstr = sprintf('ng%02d',pr);
-%                    permstr = sprintf('sb%02d',pr);
-                    permstr = sprintf('sp%02d',pr);
+%                    permstr = sprintf('sb%02d',pr); % ordered residual with same subject (group)
+%                    permstr = sprintf('sp%02d',pr); % subject permutation. ordered residual with different subject (group)
+                    permstr = sprintf('id%02d',pr); % individual permutation. ordered residual with different session & start point (individual)
                     for tg=1:length(dbsroi)
                         for d=1:1
                             for kf=1:kfold
@@ -72,7 +73,21 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
     contnames = {'STH DBS'}; % GLM contrust name
     contrasts = {[1 0]'}; % GLM contrust
 
-    surrNum = 40; % surrogate number
+    if strcmp(dtype,'0622')
+        isIndi = true;
+        sbjDiv = 3; % split time-series in each subject
+        surrNum = 24; % surrogate number (individual)
+%        surrNum = 40; % surrogate number (individual)
+    else
+        isIndi = false;
+        sbjDiv = 1; % split time-series in each subject
+        surrNum = 40; % surrogate number (group)        
+    end
+
+    % dbs params
+    dbspws = 0.15; %0.2; %0.6; %[0.25 0.5 0.6 0.75 1]; % for atlasSize=2
+%    dbspws = [0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5]; % for atlasSize=2
+    srframes = 160; dbsoffsec = 28; dbsonsec = 22;
 
     % atlas of cube clusters
     % need to run testDBS5.m first
@@ -177,7 +192,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
 
     % load surrogate permutation (seed)
     perm = []; C = []; Err = [];
-    permf = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurrPerm' permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
+    permf = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
     if exist(permf,'file')
         load(permf);
     else
@@ -196,6 +211,15 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
             for i=1:cxlen
                 perm = [perm, (1:frames) + (rp(i)-1)*frames];
             end
+        elseif length(permstr)>2 && strcmp(permstr(1:2),'id')
+            % ordered residual with different session & start point (individual)
+            rng(uxtime);
+            rp = randperm(surrNum);
+            for i=1:surrNum
+                cxi = mod(rp(i)-1,cxlen);
+                st = floor(rand() * (frames-srframes-2));
+                perm = [perm, st + (1:srframes) + cxi*frames];
+            end
         end
         if ~isempty(perm)
             save(permf,'uxtime','perm','-v7.3');
@@ -206,23 +230,25 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
     else
        dist = 'residuals';
     end
+    niipath = ['results/dbs' dtype num2str(atlasSize) 'nii' kfolddir '/'];
+    if ~exist(niipath,'dir')
+        mkdir(niipath);
+    end
 
-    dbspws = 0.15; %0.2; %0.6; %[0.25 0.5 0.6 0.75 1]; % for atlasSize=2
-%    dbspws = [0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5]; % for atlasSize=2
-    srframes = 160; dbsoffsec = 28; dbsonsec = 22;
+    % DBS calculation
     for p = 1:length(dbspws)
         dbspw = dbspws(p);
         sessionName = ['testdbsSim' num2str(dbsroi) sidestr 'AddMul' num2str(srframes) '-' num2str(dbsoffsec) '-' num2str(dbsonsec) '-' num2str(dbspw) 'pw' num2str(surrNum) 'sr'  permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr];
 
-        if exist(['results/dbs' dtype num2str(atlasSize) 'nii' kfolddir '/' sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'],'file'), continue; end
+        if exist([niipath sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'],'file'), continue; end
 
         % DBS block design 30s on, 60s off (off, on, off, on, ...)
         CA = cell(1,surrNum); Chrf = cell(1,surrNum); CM = cell(1,surrNum); 
         dt = TR / res;
         [t, hrf] = getGlmHRF(dt); % human's HRF;
 
+        n = size(CX{1},1); % nodeNum
         for i=1:surrNum
-            n = size(CX{i},1);
             bmax = floor((srframes * TR) / (dbsoffsec+dbsonsec));
             ons = []; dur = [];
             if strcmp(dtype,'pd') || strcmp(dtype,'hc')
@@ -259,7 +285,14 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
             for i=1:surrNum
                 X = [];
                 for k=0:cxlen-1
-                    X=[X, CX{mod((i-1)*2+k,cxlen)+1}];
+                    if isIndi
+                        cxi = mod(floor((i-1+k)/sbjDiv),cxlen)+1;
+                        q = mod(i-1,sbjDiv);
+                        Xk = CX{cxi}(:,srframes*q+1:srframes*(q+1));
+                    else
+                        Xk = CX{mod((i-1)*2+k,cxlen)+1};
+                    end
+                    X=[X, Xk];
                     if size(X,2) >= srframes, break; end
                 end
                 if i > length(S) || isempty(S{i})
@@ -272,6 +305,8 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
                         nBaset = {perm, 0};
                     elseif length(permstr)>2 && strcmp(permstr(1:2),'sp') % ordered residual with subject permutation
                         nBaset = {perm(frames*(i-1)+1:frames*i), 0};
+                    elseif length(permstr)>2 && strcmp(permstr(1:2),'id') % ordered residual with different session & start point (individual)
+                        nBaset = {perm(srframes*(i-1)+1:srframes*i), 0};
                     else
                         nBaset = perm; % first time, perm is empty (full residual permutation or gaussian error)
                     end

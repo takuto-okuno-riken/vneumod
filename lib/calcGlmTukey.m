@@ -40,6 +40,9 @@ function [B, RSS, df, X2is, tRs, R] = calcGlmTukey(Y, X, tuM)
 
     tc = tic; % check running time 
 %    for i=1:roiNum
+%    if isempty(gcp('nocreate'))
+%        parpool('Threads');  % this doesn't work well. perhaps, threads are used in chol, inv, etc functions. multi-process is better.
+%    end
     parfor i=1:roiNum
         % 1st step OLS regression
         [~, r] = regressLinear(Y(:,i), X, [], [], perm, RiQ, dR2i);

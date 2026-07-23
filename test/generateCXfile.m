@@ -3,11 +3,11 @@
 
 function generateCXfile
     algos = {'var','pc80','pcvar','pc999','pc9999','rdg01','rdg05','rdg800','rdg8000','las02','las05','las08','mkvar','mk50','mk80'}; % 'sigvar','sigmvar', % sigvar not work. sigmvar, soso.
-    smooth = 's34';
+    smooth = 's18'; %'s34'; %'s17'; % 34 for group. 17 for individual
     nuisance = 'gmacomp'; % 'aro'; % 
     atlasSizes = [3, 2];
     lags = [1,2,3,4,5];
-    dtype = ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
+    dtype = '0622'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % whole brain 'Ecp'; % except cerebellum & pons 
 
@@ -76,7 +76,7 @@ function generateCXfileAlgos(algo, atlasSize, lag, smooth, nuisance, dtype, sbjm
                     X = X(:,mIdx);
                 end
                 xs = std(X(:),1);
-                if ~strcmp(dtype, 'hcp1s') && xs > 10, disp('bad std X'); end
+                if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')) && xs > 10, disp('bad std X'); end
                 if strcmp(extractBefore(algo,4),'sig')
                     X = convert2SigmoidSignal(X'); % normalized [0 1] range by each subject.
                     if strcmp(extractBefore(algo,5),'sigm')
