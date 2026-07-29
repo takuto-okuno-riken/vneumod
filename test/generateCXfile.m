@@ -7,7 +7,7 @@ function generateCXfile
     nuisance = 'gmacomp'; % 'aro'; % 
     atlasSizes = [3, 2];
     lags = [1,2,3,4,5];
-    dtype = '0622'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
+    dtype = '0722'; %'0622'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % whole brain 'Ecp'; % except cerebellum & pons 
 
@@ -76,7 +76,7 @@ function generateCXfileAlgos(algo, atlasSize, lag, smooth, nuisance, dtype, sbjm
                     X = X(:,mIdx);
                 end
                 xs = std(X(:),1);
-                if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')) && xs > 10, disp('bad std X'); end
+                if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')||strcmp(dtype,'0722')) && xs > 10, disp('bad std X'); end
                 if strcmp(extractBefore(algo,4),'sig')
                     X = convert2SigmoidSignal(X'); % normalized [0 1] range by each subject.
                     if strcmp(extractBefore(algo,5),'sigm')

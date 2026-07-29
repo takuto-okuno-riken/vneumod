@@ -4,10 +4,10 @@
 
 function generateSubjectTimeSeries
     % parameters
-    smooth = 18; % 34 for group
+    smooth = 24; % 34 for group
     filter = ''; %'hf';%
     nuisance = 'gmacomp'; % 'aro'; %
-    dtype = '0622'; %''; % for pd1s % 'hcp1s'; % 'pd'; % 'hc'; %  'prod'; % 
+    dtype = '0722'; %'0622'; %''; % for pd1s % 'hcp1s'; % 'pd'; % 'hc'; %  'prod'; % 
 
     % atlas of cube clusters
     % need to run makeCubeAtlas.m first
@@ -48,7 +48,7 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
     elseif isempty(dtype)
         rsfmribase = {['H:\PPMI\pd1s']};
         maxfiles = inf;
-    elseif strcmp(dtype,'0622')
+    elseif strcmp(dtype,'0622') || strcmp(dtype,'0722')
         rsfmribase = {['d:\work\pdmri\topup' dtype]};
         maxfiles = inf;
         rmFrame = 5;  % number of removing frames
@@ -228,7 +228,7 @@ function generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,d
             X = X';
 
             xstd = std(X(:),1);
-            if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')) && xstd > 10
+            if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')||strcmp(dtype,'0722')) && xstd > 10
                 disp(['std is too big =' num2str(xstd) ', ' id '_' date]);
                 continue;
             end

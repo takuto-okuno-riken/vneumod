@@ -14,21 +14,22 @@ function plotDBSrestSimPerm
 %    checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path, dlabels);
 
     % parameters
+    date = '0722'; %'0622';
     algo = 'pcvar';
-    path = 'results/dbs06222nii/';
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's17', nuisance, atlas, path, dlabels, 24); %perm100
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's20', nuisance, atlas, path, dlabels, 24);
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's24', nuisance, atlas, path, dlabels, 24);
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's28', nuisance, atlas, path, dlabels, 24);
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's30', nuisance, atlas, path, dlabels, 24);
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's32', nuisance, atlas, path, dlabels, 24);
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's34', nuisance, atlas, path, dlabels, 24);  %perm100
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's34', nuisance, atlas, path, dlabels, 40); %perm100
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's36', nuisance, atlas, path, dlabels, 24);
-%    checkDBSpermseedPw015_0622(algo, atlasSize, 's38', nuisance, atlas, path, dlabels, 24);
+    path = ['results/dbs' date '2nii/'];
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's17', nuisance, atlas, path, dlabels, 24, date); %perm100
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's20', nuisance, atlas, path, dlabels, 24, date);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's24', nuisance, atlas, path, dlabels, 24, date);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's28', nuisance, atlas, path, dlabels, 24, date);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's30', nuisance, atlas, path, dlabels, 24, date);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's32', nuisance, atlas, path, dlabels, 24, date);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's34', nuisance, atlas, path, dlabels, 24, date);  %perm100
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's34', nuisance, atlas, path, dlabels, 40, date); %perm100
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's36', nuisance, atlas, path, dlabels, 24, date);
+%    checkDBSpermseedPw015_0622(algo, atlasSize, 's38', nuisance, atlas, path, dlabels, 24, date);
     
     % check by smooth size
-    checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabels, 24);
+    checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabels, 24, date);
 end
 
 function [gV, aV, bmV, bcV] = loadAtlasfiles()
@@ -119,7 +120,7 @@ function checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path
 end
 
 
-function checkDBSpermseedPw015_0622(algo, atlasSize, smooth, nuisance, atlas, path, dlabels, surrNum)
+function checkDBSpermseedPw015_0622(algo, atlasSize, smooth, nuisance, atlas, path, dlabels, surrNum, date)
     dbsrois =  [4525];%[4501, 4502, 4503]; % STH anteri, post, other (sz=2)
     tuM = 8;  % GLM tukey-taper size
     cubename = [atlas 'Cube' num2str(atlasSize)];
@@ -147,7 +148,7 @@ function checkDBSpermseedPw015_0622(algo, atlasSize, smooth, nuisance, atlas, pa
         permstrs = {};
         for p = 1:permNum
             permStr = sprintf('id%02d',p);
-            sessionName = ['testdbsSim' num2str(dbsroi) 'AddMul' '160-28-22-0.15pw' num2str(surrNum) 'sr' permStr algo cubename smooth nuisance '0622'];
+            sessionName = ['testdbsSim' num2str(dbsroi) 'AddMul' '160-28-22-0.15pw' num2str(surrNum) 'sr' permStr algo cubename smooth nuisance date];
             fname = [path sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'];
             if exist(fname,'file')
                 info = niftiinfo(fname);
@@ -185,9 +186,8 @@ function checkDBSpermseedPw015_0622(algo, atlasSize, smooth, nuisance, atlas, pa
     end
 end
 
-
-function checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabels, surrNum)
-    smooths = {'s17', 's20', 's24', 's28', 's30', 's32', 's34', 's36', 's38'};
+function checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabels, surrNum, date)
+    smooths = {'s12', 's14', 's16', 's18', 's20', 's22', 's24', 's26', 's28', 's30', 's32', 's34', 's36', 's38', 's40', 's42'};
     dbsroi =  4525; % STN sweet spot (sz=2)
     tuM = 8;  % GLM tukey-taper size
     cubename = [atlas 'Cube' num2str(atlasSize)];
@@ -215,7 +215,7 @@ function checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabel
         permstrs = {};
         for p = 1:permNum
             permStr = sprintf('id%02d',p);
-            sessionName = ['testdbsSim' num2str(dbsroi) 'AddMul' '160-28-22-0.15pw' num2str(surrNum) 'sr' permStr algo cubename smooth nuisance '0622'];
+            sessionName = ['testdbsSim' num2str(dbsroi) 'AddMul' '160-28-22-0.15pw' num2str(surrNum) 'sr' permStr algo cubename smooth nuisance date];
             fname = [path sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'];
             if exist(fname,'file')
                 info = niftiinfo(fname);
@@ -239,12 +239,22 @@ function checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabel
     scores = (aucs-0.5)*2 + (rs);
     partStrs = {'BA4,6','cortex','subcortex','cerebellum','cortex & cerebellum','all'};
     for i=[1 2 6]
-        figure; boxplot(aucs(:,:,1)'); ylabel('AUC'); xticks(1:length(smooths)); xticklabels(smooths);
+        figure; boxplot(aucs(:,:,i)'); ylabel('AUC'); xticks(1:length(smooths)); xticklabels(smooths);
         title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]); 
-        figure; boxplot(rs(:,:,1)'); ylabel('R'); xticks(1:length(smooths)); xticklabels(smooths);
+        figure; boxplot(rs(:,:,i)'); ylabel('R'); xticks(1:length(smooths)); xticklabels(smooths);
         title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
-        figure; boxplot(scores(:,:,1)'); ylabel('Score'); xticks(1:length(smooths)); xticklabels(smooths);
+        figure; boxplot(scores(:,:,i)'); ylabel('Score'); xticks(1:length(smooths)); xticklabels(smooths);
         title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
+    end
+
+    % list top 5
+    for k = 1:length(smooths)
+        smooth = smooths{k};
+        sc6 = squeeze(scores(k,:,6)); % all
+        [sc6des,idx] = sort(sc6,'descend', 'MissingPlacement', 'last');
+        for i=1:5
+            disp([num2str(i) ') Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum) ' Score=' num2str(sc6des(i)) ' (idx=' num2str(idx(i)) ')']);
+        end
     end
 end
 
