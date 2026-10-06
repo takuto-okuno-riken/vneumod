@@ -3,7 +3,7 @@
 
 function testDBSrestSimAddMul
     algos = {'var','pc80','pcvar','pc999','pc9999','rdg01','rdg05','rdg800','rdg8000','las02','las05','las08','mkvar','mk50','mk80'}; % 'sigvar','sigmvar', % sigvar not work. sigmvar, soso.
-    smooth = 's36';% 's34'; %'s17'; % 34 for group. check 14 to 36 for individual.
+    smooth = 's14';% 's34'; % 34 for group. check 14 to 36 for individual.
     nuisance = 'gmacomp'; % 'aro'; %
     atlasSizes = [3, 2];
     usegpus = [false, false];
@@ -167,6 +167,9 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
     end
     if isempty(net)
         fname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
+        if ~exist(fname,'file')
+            fname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurrCX' cubename smooth nuisance dtype sbjmax '_gsm_pcvar.mat'];
+        end
         load(fname);
     end
     if isempty(CXall)
@@ -199,21 +202,21 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
         uxtime = uint32(posixtime(datetime('now')));
         if length(permstr)>2 && strcmp(permstr(1:2),'pe')
             % noise permutation in each subject
-            rng(uxtime);
+            rng(uxtime,'twister');
             perm = randperm(frames);
         elseif length(permstr)>2 && strcmp(permstr(1:2),'sb')
             % ordered residual with same subject
             perm = (1:frames) + (str2double(permstr(3:4))-1)*frames;
         elseif length(permstr)>2 && strcmp(permstr(1:2),'sp')
             % ordered residual with subject permutation
-            rng(uxtime);
+            rng(uxtime,'twister');
             rp = randperm(cxlen);
             for i=1:cxlen
                 perm = [perm, (1:frames) + (rp(i)-1)*frames];
             end
         elseif length(permstr)>2 && strcmp(permstr(1:2),'id')
             % ordered residual with different session & start point (individual)
-            rng(uxtime);
+            rng(uxtime,'twister');
             rp = randperm(surrNum);
             for i=1:surrNum
                 cxi = mod(rp(i)-1,cxlen);
