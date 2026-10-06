@@ -4,7 +4,7 @@
 
 function generateSubjectTimeSeries
     % parameters
-    smooth = 32; % 34 for group. check 14 to 36 for individual.
+    smoothes = 14:2:36; % 34 for group. check 14 to 36 for individual.
     filter = ''; %'hf';%
     nuisance = 'gmacomp'; % 'aro'; %
     dtype = '1005'; %'0722'; %'0622'; %''; % for pd1s % 'hcp1s'; % 'pd'; % 'hc'; %  'prod'; % 
@@ -14,7 +14,9 @@ function generateSubjectTimeSeries
     atlasSizes = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
     for sz=9
         atlasSize = atlasSizes(sz);
-        generateSubjectTimeSeriesByCubeAtlas(atlasSize,smooth,filter,nuisance,dtype);
+        for s=1:length(smoothes)
+            generateSubjectTimeSeriesByCubeAtlas(atlasSize,smoothes(s),filter,nuisance,dtype);
+        end
     end
 end
 
