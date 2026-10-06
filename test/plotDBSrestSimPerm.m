@@ -14,7 +14,7 @@ function plotDBSrestSimPerm
 %    checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path, dlabels);
 
     % parameters
-    date = '0722'; %'0622';
+    date = '0722'; %'0622'; %
     algo = 'pcvar';
     path = ['results/dbs' date '2nii/'];
 %    checkDBSpermseedPw015_0622(algo, atlasSize, 's17', nuisance, atlas, path, dlabels, 24, date); %perm100
@@ -240,20 +240,22 @@ function checkDBSsmoothPw015_0622(algo, atlasSize, nuisance, atlas, path, dlabel
     partStrs = {'BA4,6','cortex','subcortex','cerebellum','cortex & cerebellum','all'};
     for i=[1 2 6]
         figure; boxplot(aucs(:,:,i)'); ylabel('AUC'); xticks(1:length(smooths)); xticklabels(smooths);
-        title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]); 
+        title([date ' (' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]); 
         figure; boxplot(rs(:,:,i)'); ylabel('R'); xticks(1:length(smooths)); xticklabels(smooths);
-        title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
+        title([date ' (' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
         figure; boxplot(scores(:,:,i)'); ylabel('Score'); xticks(1:length(smooths)); xticklabels(smooths);
-        title(['(' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
+        title([date ' (' partStrs{i} ') roi=' num2str(dbsroi) ' Tth=' num2str(Tth) ' SurrNum=' num2str(surrNum)]);
     end
 
     % list top 5
+    disp([date ' top 5s']);
     for k = 1:length(smooths)
         smooth = smooths{k};
         sc6 = squeeze(scores(k,:,6)); % all
-        [sc6des,idx] = sort(sc6,'descend', 'MissingPlacement', 'last');
+        [sc6des,idxs] = sort(sc6,'descend', 'MissingPlacement', 'last');
         for i=1:5
-            disp([num2str(i) ') Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum) ' Score=' num2str(sc6des(i)) ' (idx=' num2str(idx(i)) ')']);
+            idx = idxs(i);
+            disp([num2str(i) ') Tth=' num2str(Tth) ' Smooth=' smooth ' SurrNum=' num2str(surrNum) ' AUC=' num2str(aucs(k,idx,6)) ' R=' num2str(rs(k,idx,6)) ' Score=' num2str(sc6des(i)) ' (idx=' num2str(idx) ')']);
         end
     end
 end

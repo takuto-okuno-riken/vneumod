@@ -3,11 +3,11 @@
 
 function generateCXfile
     algos = {'var','pc80','pcvar','pc999','pc9999','rdg01','rdg05','rdg800','rdg8000','las02','las05','las08','mkvar','mk50','mk80'}; % 'sigvar','sigmvar', % sigvar not work. sigmvar, soso.
-    smooth = 's18'; %'s34'; %'s17'; % 34 for group. 17 for individual
+    smoothes = {'s14','s16','s18','s20','s24','s26','s28','s30','s32','s34','s36'}; %'s34'; % 34 for group. check 14 to 36 for individual.
     nuisance = 'gmacomp'; % 'aro'; % 
     atlasSizes = [3, 2];
     lags = [1,2,3,4,5];
-    dtype = '0722'; %'0622'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
+    dtype = '1005'; %'0722'; %'0622'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % whole brain 'Ecp'; % except cerebellum & pons 
 
@@ -16,7 +16,9 @@ function generateCXfile
         for sz=2
             atlasSize = atlasSizes(sz);
             for p=1:1
-                generateCXfileAlgos(algo, atlasSize, lags(p), smooth, nuisance, dtype, sbjmax, mtype);
+                for s=1:length(smoothes)
+                    generateCXfileAlgos(algo, atlasSize, lags(p), smoothes{s}, nuisance, dtype, sbjmax, mtype);
+                end
             end
         end
     end
@@ -76,7 +78,7 @@ function generateCXfileAlgos(algo, atlasSize, lag, smooth, nuisance, dtype, sbjm
                     X = X(:,mIdx);
                 end
                 xs = std(X(:),1);
-                if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')||strcmp(dtype,'0722')) && xs > 10, disp('bad std X'); end
+                if ~(strcmp(dtype,'hcp1s')||strcmp(dtype,'0622')||strcmp(dtype,'0722')||strcmp(dtype,'1005')) && xs > 10, disp('bad std X'); end
                 if strcmp(extractBefore(algo,4),'sig')
                     X = convert2SigmoidSignal(X'); % normalized [0 1] range by each subject.
                     if strcmp(extractBefore(algo,5),'sigm')

@@ -3,7 +3,7 @@
 
 function testDBSrestSimAddMul
     algos = {'var','pc80','pcvar','pc999','pc9999','rdg01','rdg05','rdg800','rdg8000','las02','las05','las08','mkvar','mk50','mk80'}; % 'sigvar','sigmvar', % sigvar not work. sigmvar, soso.
-    smooth = 's12';% 's34'; %'s17'; % 34 for group. 17 for individual
+    smooth = 's36';% 's34'; %'s17'; % 34 for group. check 14 to 36 for individual.
     nuisance = 'gmacomp'; % 'aro'; %
     atlasSizes = [3, 2];
     usegpus = [false, false];
@@ -26,7 +26,7 @@ function testDBSrestSimAddMul
 %    dbsroi = [3503, 3504, 3402, 3403]; % VIM, VIM, Vop, Vop (sz=2)
 %    dbsroi = [1212, 3403, 20002]; % GPi asso, Vop, PPN asso (sz=2)
     side = [0, 1]; % both, left
-    dtype = '0722';% '0622'; % ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
+    dtype = '1005';%'0722';% '0622'; % ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % for whole brain 'Ecp'; % except cerebellum & pons 
     kfold = 1;%  10; %if 1 no fold.
@@ -73,7 +73,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
     contnames = {'STH DBS'}; % GLM contrust name
     contrasts = {[1 0]'}; % GLM contrust
 
-    if strcmp(dtype,'0622')||strcmp(dtype,'0722')
+    if strcmp(dtype,'0622')||strcmp(dtype,'0722')||strcmp(dtype,'1005')
         isIndi = true;
         sbjDiv = 3; % split time-series in each subject
         surrNum = 24; % surrogate number (individual)
