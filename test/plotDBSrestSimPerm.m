@@ -14,7 +14,7 @@ function plotDBSrestSimPerm
 %    checkDBSpermseedPw015_06(algo, atlasSize, smooth, nuisance, atlas, path, dlabels);
 
     % parameters
-    date = '0722'; %'0622'; %
+    date = '1005'; %'0722'; %'0622'; %
     algo = 'pcvar';
     path = ['results/dbs' date '2nii/'];
 %    checkDBSpermseedPw015_0622(algo, atlasSize, 's17', nuisance, atlas, path, dlabels, 24, date); %perm100
