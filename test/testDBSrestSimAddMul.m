@@ -26,7 +26,7 @@ function testDBSrestSimAddMul
 %    dbsroi = [3503, 3504, 3402, 3403]; % VIM, VIM, Vop, Vop (sz=2)
 %    dbsroi = [1212, 3403, 20002]; % GPi asso, Vop, PPN asso (sz=2)
     side = [0, 1]; % both, left
-    dtype = '1005';%'0722';% '0622'; % ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
+    dtype = '0622'; %'1005';%'0722';%  ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % for whole brain 'Ecp'; % except cerebellum & pons 
     kfold = 1;%  10; %if 1 no fold.
@@ -195,7 +195,15 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
 
     % load surrogate permutation (seed)
     perm = []; C = []; Err = [];
-    permf = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
+    if length(permstr)>2 && strcmp(permstr(1:2),'id')
+        permPath = ['results/dbs' num2str(atlasSize) '/permid'];
+        if ~exist(permPath,'dir')
+            mkdir(permPath);
+        end
+        permf = ['results/dbs' num2str(atlasSize) '/permid/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename sbjmax '.mat'];
+    else
+        permf = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
+    end
     if exist(permf,'file')
         load(permf);
     else
