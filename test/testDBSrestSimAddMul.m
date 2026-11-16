@@ -3,7 +3,7 @@
 
 function testDBSrestSimAddMul
     algos = {'var','pc80','pcvar','pc999','pc9999','rdg01','rdg05','rdg800','rdg8000','las02','las05','las08','mkvar','mk50','mk80'}; % 'sigvar','sigmvar', % sigvar not work. sigmvar, soso.
-    smooth = 's14';% 's34'; % 34 for group. check 14 to 36 for individual.
+    smooth = 's24';% 's34'; % 34 for group. check 14 to 36 for individual.
     nuisance = 'gmacomp'; % 'aro'; %
     atlasSizes = [3, 2];
     usegpus = [false, false];
@@ -27,6 +27,7 @@ function testDBSrestSimAddMul
 %    dbsroi = [1212, 3403, 20002]; % GPi asso, Vop, PPN asso (sz=2)
     side = [0, 1]; % both, left
     dtype = '0622'; %'1005';%'0722';%  ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
+    subsess = '123'; % for individual sessions. ''; for pd1s, hcp1s
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % for whole brain 'Ecp'; % except cerebellum & pons 
     kfold = 1;%  10; %if 1 no fold.
@@ -41,7 +42,7 @@ function testDBSrestSimAddMul
             atlasSize = atlasSizes(sz);
             for p=1:1
                 net = []; CXall = {};
-                for pr=1:50 %[15,38]%,44,47,59,60,69,74,81,97]
+                for pr=1:20 %[15,38]%,44,47,59,60,69,74,81,97]
 %                    permstr = num2str(590*pr);
 %                    permstr = sprintf('pm%02d',pr); % fully shuffled
 %                    permstr = sprintf('ng%02d',pr);
@@ -51,7 +52,7 @@ function testDBSrestSimAddMul
                     for tg=1:length(dbsroi)
                         for d=1:1
                             for kf=1:kfold
-                                [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lags(p), usegpus(sz), dbsroi(tg), side(d), smooth, nuisance, dtype, sbjmax, mtype, permstr, kfold, kf, net, CXall);
+                                [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lags(p), usegpus(sz), dbsroi(tg), side(d), smooth, nuisance, dtype, subsess, sbjmax, mtype, permstr, kfold, kf, net, CXall);
                             end
                         end
                     end
@@ -61,7 +62,7 @@ function testDBSrestSimAddMul
     end
 end
 
-function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, dbsroi, side, smooth, nuisance, dtype, sbjmax, mtype, permstr, kfold, kf, net, CXall)
+function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, dbsroi, side, smooth, nuisance, dtype, subsess, sbjmax, mtype, permstr, kfold, kf, net, CXall)
     res = 16; % HRF sampling resolution
     sp = 8;   % HRF sampling starting point
     TR = 1.0;
@@ -75,7 +76,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
 
     if strcmp(dtype,'0622')||strcmp(dtype,'0722')||strcmp(dtype,'1005')
         isIndi = true;
-        sbjDiv = 3; % split time-series in each subject
+        sbjDiv = 3; % split time-series in each session
         surrNum = 24; % surrogate number (individual)
 %        surrNum = 40; % surrogate number (individual)
     else
@@ -166,14 +167,14 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
         kfoldstr = [num2str(kfold) 'fold'  '-' num2str(kf)];
     end
     if isempty(net)
-        fname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
+        fname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' algo lagStr cubename smooth nuisance dtype sbjmax subsess kfoldstr '.mat'];
         if ~exist(fname,'file')
-            fname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurrCX' cubename smooth nuisance dtype sbjmax '_gsm_pcvar.mat'];
+            fname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurrCX' cubename smooth nuisance dtype sbjmax subsess '_gsm_pcvar.mat'];
         end
         load(fname);
     end
     if isempty(CXall)
-        cxfname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurrCX' cubename smooth nuisance dtype sbjmax '.mat'];
+        cxfname = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurrCX' cubename smooth nuisance dtype sbjmax subsess '.mat'];
         cf=load(cxfname);
         CXall = cf.CX;
     end
@@ -191,6 +192,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
     frames = size(CX{1},2);
     m = nanmean(X3(:));
     s = nanstd(X3(:),1);
+    disp(['dtype=' dtype ' smooth=' smooth ' m=' num2str(m) ' sigma_x=' num2str(s)]);
     clear X3;
 
     % load surrogate permutation (seed)
@@ -200,7 +202,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
         if ~exist(permPath,'dir')
             mkdir(permPath);
         end
-        permf = ['results/dbs' num2str(atlasSize) '/permid/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename sbjmax '.mat'];
+        permf = ['results/dbs' num2str(atlasSize) '/permid/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename sbjmax subsess '.mat'];
     else
         permf = ['results/dbs' dtype num2str(atlasSize) '/testdbsSurr' num2str(surrNum) 'Perm' permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr '.mat'];
     end
@@ -249,7 +251,7 @@ function [net, CXall] = checkDbsVarSurrogateAlgos(algo, atlasSize, lag, usegpu, 
     % DBS calculation
     for p = 1:length(dbspws)
         dbspw = dbspws(p);
-        sessionName = ['testdbsSim' num2str(dbsroi) sidestr 'AddMul' num2str(srframes) '-' num2str(dbsoffsec) '-' num2str(dbsonsec) '-' num2str(dbspw) 'pw' num2str(surrNum) 'sr'  permstr algo lagStr cubename smooth nuisance dtype sbjmax kfoldstr];
+        sessionName = ['testdbsSim' num2str(dbsroi) sidestr 'AddMul' num2str(srframes) '-' num2str(dbsoffsec) '-' num2str(dbsonsec) '-' num2str(dbspw) 'pw' num2str(surrNum) 'sr'  permstr algo lagStr cubename smooth nuisance dtype sbjmax subsess kfoldstr];
 
         if exist([niipath sessionName '2nd-mix-Tukey' num2str(tuM) '.nii.gz'],'file'), continue; end
 
