@@ -27,7 +27,7 @@ function testDBSrestSimAddMul
 %    dbsroi = [1212, 3403, 20002]; % GPi asso, Vop, PPN asso (sz=2)
     side = [0, 1]; % both, left
     dtype = '0622'; %'1005';%'0722';%  ''; % for pd1s 'hcp1s'; % 'pd'; % 'hc'; % 
-    subsess = '123'; % for individual sessions. ''; for pd1s, hcp1s
+    subsess = '1'; % for individual sessions. ''; for pd1s, hcp1s
     sbjmax = ''; % for others '61'; %'30'; % for pd30 
     mtype = ''; % for whole brain 'Ecp'; % except cerebellum & pons 
     kfold = 1;%  10; %if 1 no fold.
@@ -42,7 +42,7 @@ function testDBSrestSimAddMul
             atlasSize = atlasSizes(sz);
             for p=1:1
                 net = []; CXall = {};
-                for pr=1:20 %[15,38]%,44,47,59,60,69,74,81,97]
+                for pr=1:50 %[15,38]%,44,47,59,60,69,74,81,97]
 %                    permstr = num2str(590*pr);
 %                    permstr = sprintf('pm%02d',pr); % fully shuffled
 %                    permstr = sprintf('ng%02d',pr);

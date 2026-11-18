@@ -6,7 +6,7 @@ function generateCXshortfile
     nuisance = 'gmacomp'; % 'aro'; % 
     atlasSizes = [3, 2];
     lags = [1,2,3,4,5];
-    dtype = '0622'; %'1005'; %'0722'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
+    dtype = '1005'; %'0722'; %'0622'; % ''; % for pd1s 'hcp1s'; % 'hcp'; % 'pd'; % 'hc'; %  
     sbjmax = '';
     sessidx = [1]; %[1 2 3];
     mtype = ''; % whole brain 'Ecp'; % except cerebellum & pons 
